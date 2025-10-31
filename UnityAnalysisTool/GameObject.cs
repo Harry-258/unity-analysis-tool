@@ -2,5 +2,5 @@
 
 public class GameObject
 {
-    public string m_Name;
+    public string? m_Name { get; set; }
 }

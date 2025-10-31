@@ -2,5 +2,5 @@
 
 public class YamlObject
 {
-    public GameObject GameObject;
+    public GameObject? GameObject { get; set; }
 }
