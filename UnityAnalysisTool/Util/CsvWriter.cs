@@ -1,15 +1,24 @@
+using System.IO;
+
 namespace UnityAnalysisTool.Util;
 
 public class CsvWriter
 {
-    public static void Write(string outputPath, List<string, Script> scripts)
+    public static void Write(string outputPath, List<Script> scripts)
     {
-        // create CSV
-        // Add headers
+        string[] headers = { "Relative Path", "GUID" };
 
-        foreach (Script script in scripts.Values)
+        using (StreamWriter writer = new StreamWriter(Path.Combine(outputPath, "UnusedScripts.csv")))
         {
-            // add row
+            writer.WriteLine(string.Join(",", headers));
+            foreach (Script script in scripts)
+            {
+                if (!script.isUsed)
+                {
+                    string[] row = { script.path, script.id };
+                    writer.WriteLine(string.Join(",", row));
+                }
+            }
         }
     }
 }

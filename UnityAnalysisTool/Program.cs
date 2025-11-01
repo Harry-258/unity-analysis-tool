@@ -31,10 +31,10 @@ namespace UnityAnalysisTool
 
             // TODO: Check if there is a project at the given path and if path is valid
 
-            // TODO: This should be universal, not with \
+            // TODO: This should be Path.DirectorySeparatorChar
             string projectPath = args[0].Trim(' ', '\\');
             Console.WriteLine("Analyzing project at path: " + projectPath);
-            Console.WriteLine("Writing ouput at path: " + outputPath);
+            Console.WriteLine("Writing ouput to: " + outputPath);
 
             // TODO: write a test for a project without an Assets folder
             // Check if the Assets directory exists
@@ -51,7 +51,7 @@ namespace UnityAnalysisTool
             Script.SearchForScripts(assetsPath, scriptIdToScript);
             FindSceneFiles(assetsPath, outputPath, scriptIdToScript);
 
-            CsvWriter.Write(outputPath, scriptIdToScript);
+            CsvWriter.Write(outputPath, scriptIdToScript.Values.ToList());
         }
 
         /**
@@ -76,10 +76,8 @@ namespace UnityAnalysisTool
             });
             Parallel.ForEach(directories, dir =>
             {
-                // Get the name of the new directory
-                string dirName = dir.Split("\\")[^1];
-
                 // Use the new directory as the output path while still searching for scene files in the project
+                string dirName = dir.Split("\\")[^1];
                 FindSceneFiles(dir, Path.Combine(outputPath ?? "", dirName), scriptIdToScript);
             });
         }

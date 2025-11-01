@@ -1,3 +1,6 @@
+using System.Collections.Concurrent;
+
+using UnityAnalysisTool.Util;
 using UnityAnalysisTool.YamlFormats;
 
 using YamlDotNet.Serialization;

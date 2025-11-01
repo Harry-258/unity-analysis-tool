@@ -18,6 +18,6 @@ public class MetaFileParser
 
         string guid = deserialzedObj.guid;
 
-        return guid
+        return guid;
     }
 }
