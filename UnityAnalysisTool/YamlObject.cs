@@ -3,4 +3,5 @@
 public class YamlObject
 {
     public GameObject? GameObject { get; set; }
+    public Transform? Transform { get; set; }
 }
