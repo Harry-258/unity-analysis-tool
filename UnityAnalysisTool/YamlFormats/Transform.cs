@@ -1,5 +1,8 @@
 namespace UnityAnalysisTool.YamlFormats;
 
+/// <summary>
+///  Represents an entry parsed from a Unity scene file in YAML format. It only contains the fields useful for this tool.
+/// </summary>
 public class Transform
 {
     public FileReference? m_GameObject { get; set; }
@@ -8,6 +11,9 @@ public class Transform
     public bool visited { get; set; } = false;
 }
 
+/// <summary>
+/// Represents an entry parsed from a Unity scene file in YAML format.
+/// </summary>
 public class FileReference
 {
     public string fileID { get; set; } = "";

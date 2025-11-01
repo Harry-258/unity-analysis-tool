@@ -10,12 +10,13 @@ namespace UnityAnalysisTool.Parsers;
 
 public class SceneParser
 {
-    /**
-     * Reads a file and parses it using the YAML deserializer.
-     * If it finds a GameObject, it creates a dump file to add it to.
-     *
-     * TODO: path parameter comments?
-     */
+    /// <summary>
+    /// Reads a file and parses it using the YAML deserializer.
+    /// Writes the formatted result to a dump file.
+    /// </summary>
+    /// <param name="path"> The path to the scene file. </param>
+    /// <param name="outputPath"> The path where the dump file should be paced at. </param>
+    /// <param name="scriptIdToScript"> The dictionary containing all the scripts in the project. </param>
     public static void ParseUnitySceneFile(string path, string? outputPath, ConcurrentDictionary<string, Script> scriptIdToScript)
     {
         // Read file content and split it into different objects using "--- !u!"
@@ -38,16 +39,15 @@ public class SceneParser
         {
             using var reader = new StringReader(obj);
 
-            // Read the first line to get the object type and id
             string? firstLine = reader.ReadLine();
             if (firstLine is null)
             {
-                // TODO: Is this even possible?
+                // This should not be possible
                 break;
             }
 
-            string objType = firstLine.Split(" &")[0], objId = firstLine.Split(" &")[1];
-
+            string objType = firstLine.Split(" &")[0];
+            string objId = firstLine.Split(" &")[1];
             string yamlObj = reader.ReadToEnd();
             var deserializedObj = deserializer.Deserialize<YamlObject>(yamlObj);
 
@@ -75,6 +75,8 @@ public class SceneParser
                         break;
                     }
 
+                    // TODO: This is never reached ------------------------------------------------------------------------------------------------------
+
                     // --------------------
                     Console.WriteLine("GUID " + guid);
                     foreach (var field in yamlFields)
@@ -93,7 +95,6 @@ public class SceneParser
                     {
                         scriptIdToScript[guid].isUsed = true;
                     }
-
                     break;
                 default:
                     break;
@@ -104,7 +105,13 @@ public class SceneParser
         WriteToDumpFile(outputPath, fileTitle, result);
     }
 
-    // TODO: Documentation
+    /// <summary>
+    /// Writes the given content to a dump file.
+    /// </summary>
+    /// <param name="outputPath"> The path where the dump file should be paced at. </param>
+    /// <param name="fileTitle"> The title of the dump file, without the ".dump" extension. If it's null, it writes to the directory at the same level as the tool.</param>
+    /// <param name="content"> The content to be placed in the dump file. </param>
+    /// <returns></returns>
     static void WriteToDumpFile(string outputPath, string fileTitle, string content)
     {
         if (content != "")
@@ -121,12 +128,14 @@ public class SceneParser
         }
     }
 
-    /**
-     * Iterates through the transforms and formats the associated GameObject names into a string.
-     * Indents the names for children transforms under their parent using the prefix parameter.
-     *
-     * TODO: parameters?
-     */
+    /// <summary>
+    /// Iterates through the transforms and formats the associated GameObject names into a string.
+    /// Indents the names for children objects under their parent using "--" for each hierarchy level.
+    /// </summary>
+    /// <param name="gameObjectMap"> The map containing all the GameObject objects in the scene file. </param>
+    /// <param name="transformMap"> The map containing all the Transform objects in the scene file. </param>
+    /// <param name="transforms"> The list of all the Transform objects that should be taken into account. </param>
+    /// <returns> A string containing the formatted GameObject names. </returns>
     static string MakeDumpFileContents(
         Dictionary<string, GameObject> gameObjectMap,
         Dictionary<string, Transform> transformMap,

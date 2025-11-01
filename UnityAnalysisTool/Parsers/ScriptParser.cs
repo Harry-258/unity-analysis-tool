@@ -11,7 +11,13 @@ namespace UnityAnalysisTool.Parsers;
 
 public class ScriptParser
 {
-    public static List<string> ParseScript(string scriptPath, string scriptId, ConcurrentDictionary<string, Script> scriptIdToScript)
+    /// <summary>
+    ///  Parses the given script and returns a list of all serialized fields.
+    /// </summary>
+    /// <param name="scriptPath"> The path to the script. </param>
+    /// <param name="scriptId"> The GUID of the script. </param>
+    /// <returns> A list of the serialized fields inside the script. </returns>
+    public static List<string> ParseScript(string scriptPath, string scriptId)
     {
         // TODO: also look at the objects used in the script. They could be instances of other scripts => still used
         var code = File.ReadAllText(scriptPath);

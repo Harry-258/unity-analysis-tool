@@ -53,10 +53,13 @@ namespace UnityAnalysisTool
             CsvWriter.Write(outputPath, scriptIdToScript.Values.ToList());
         }
 
-        /**
-         * Finds all the scene files starting from the given root directory.
-         * If it encounters a directory, it will recursively search for scene files in it.
-         */
+        /// <summary>
+        ///  Finds all the scene files starting from the given root directory and parses them in parallel.
+        ///  If it encounters a directory, it will recursively search for scene files in it.
+        /// </summary>
+        /// <param name="root"> The root directory to search for scene files in. </param>
+        /// <param name="outputPath"> The path to the output directory. </param>
+        /// <param name="scriptIdToScript"> The concurrent dictionary containing information about the found scripts. </param>
         static void FindSceneFiles(
             string root,
             string? outputPath,
@@ -76,7 +79,7 @@ namespace UnityAnalysisTool
             Parallel.ForEach(directories, dir =>
             {
                 // Use the new directory as the output path while still searching for scene files in the project
-                string dirName = dir.Split("\\")[^1];
+                string dirName = dir.Split(Path.DirectorySeparatorChar)[^1];
                 FindSceneFiles(dir, Path.Combine(outputPath ?? "", dirName), scriptIdToScript);
             });
         }

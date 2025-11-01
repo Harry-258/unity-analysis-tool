@@ -4,6 +4,11 @@ namespace UnityAnalysisTool.Util;
 
 public class CsvWriter
 {
+    /// <summary>
+    /// Writes a CSV file with all the unused scripts.
+    /// </summary>
+    /// <param name="outputPath"> The path at which it should write the CSV file. </param>
+    /// <param name="scripts"> The list of scripts to add if they are not used. </param>
     public static void Write(string outputPath, List<Script> scripts)
     {
         string[] headers = { "Relative Path", "GUID" };
