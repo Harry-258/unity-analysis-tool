@@ -177,7 +177,8 @@ namespace UnityAnalysisTool
             // Iterate through the Transform map and add the associated GameObject name to the result
             foreach (Transform transform in transforms)
             {
-                if (transform.visited)
+                // Skip if we already visited this transform or if it has a parent transform that wasn't visited 
+                if (transform.visited || transform.m_Father.fileID != "0" && !transformMap[transform.m_Father.fileID].visited)
                 {
                     continue;
                 }
