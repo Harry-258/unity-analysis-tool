@@ -1,4 +1,4 @@
-﻿namespace UnityAnalysisTool.YamlFormats;
+namespace UnityAnalysisTool.YamlFormats;
 
 public class YamlObject
 {

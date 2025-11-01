@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
+
+using UnityAnalysisTool.YamlFormats;
+
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using UnityAnalysisTool.YamlFormats;
 
 namespace UnityAnalysisTool
 {
@@ -11,40 +13,37 @@ namespace UnityAnalysisTool
     {
         static void Main(string[] args)
         {
-            // TODO: find a better way of parsing using the tag in the comment on the 2nd line?
-            // TODO: Specify output directory as argument
-            
+            // TODO: Test with path with paths with single \ and double \\ (pbt?)
             // TODO: Test this
             if (args.Length != 2)
             {
                 Console.WriteLine("Usage: ./tool.exe <path-to-unity-project> <path-to-output-directory>");
                 return;
             }
-            
+
             string outputPath = args[1];
             if (Directory.Exists(outputPath))
             {
                 Directory.Delete(outputPath, true);
             }
             Directory.CreateDirectory(outputPath);
-            
+
             // TODO: Check if there is a project at the given path and if path is valid
 
             // TODO: This should be universal, not with \
             string projectPath = args[0].Trim(' ', '\\');
             Console.WriteLine("Analyzing project at path: " + projectPath);
             Console.WriteLine("Writing ouput at path: " + outputPath);
-            
+
             // TODO: write a test for a project without an Assets folder
             // Check if the Assets directory exists
             string[] directories = Directory.GetDirectories(projectPath, "Assets", SearchOption.TopDirectoryOnly);
             if (directories.Length == 0)
             {
-                // TODO: Change to error
                 Console.WriteLine("Couldn't find Assets folder! Are you sure you specified the correct path to the project root?");
                 return;
             }
-            
+
             // I decided to keep the same directory structure for the dump files
             // as the scene files in the original project to keep them organized.
             string assetsPath = Path.Combine(projectPath, "Assets");
@@ -59,30 +58,19 @@ namespace UnityAnalysisTool
         {
             string[] files = Directory.GetFiles(root);
             string[] directories = Directory.GetDirectories(root);
-            
-            
-            foreach (string file in files)
+
+            Parallel.ForEach(files, file =>
             {
                 parseFile(file, outputPath);
-            }
-            foreach (string dir in directories)
+            });
+            Parallel.ForEach(directories, dir =>
             {
+                // Get the name of the new directory
                 string dirName = dir.Split("\\")[^1];
+
+                // Use the new directory as the output path while still searching for scene files in the project
                 findSceneFiles(dir, Path.Combine(outputPath ?? "", dirName));
-            }
-            
-            // Parallel.ForEach(files, file =>
-            // {
-            //     parseFile(file, outputPath);
-            // });
-            // Parallel.ForEach(directories, dir =>
-            // {
-            //     // Get the name of the new directory
-            //     string dirName = dir.Split("\\")[^1];
-            //     
-            //     // Use the new directory as the output path while still searching for scene files in the project 
-            //     findSceneFiles(dir, Path.Combine(outputPath ?? "", dirName));
-            // });
+            });
         }
 
         /**
@@ -96,13 +84,13 @@ namespace UnityAnalysisTool
             // Read file content and split it into different objects using "--- !u!"
             string fileContent = File.ReadAllText(path);
             string[] objects = fileContent.Split("--- !u!");
-            
+
             string[] pathDirectories = path.Split('\\');
             string fileTitle = pathDirectories[pathDirectories.Length - 1];
-            
+
             // Initialize YAML deserializer such that it ignores tags that are not in the formats defined in UnityAnalysisTool.YamlFormats
             var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
-            
+
             string result = "";
             var transformMap = new Dictionary<string, Transform>();
             var gameObjectMap = new Dictionary<string, GameObject>();
@@ -120,7 +108,7 @@ namespace UnityAnalysisTool
                     // TODO: Is this even possible?
                     break;
                 }
-                
+
                 string objType = firstLine.Split(" &")[0], objId = firstLine.Split(" &")[1];
 
                 // if it is a GameObject, save the name to the file
@@ -128,7 +116,7 @@ namespace UnityAnalysisTool
                 {
                     string yamlObj = reader.ReadToEnd();
                     var deserializedObj = deserializer.Deserialize<YamlObject>(yamlObj);
-                    
+
                     if (objType == "1")
                     {
                         if (deserializedObj?.GameObject?.m_Name is null)
@@ -143,7 +131,7 @@ namespace UnityAnalysisTool
                     }
                 }
             }
-            
+
             result = makeFileContents(gameObjectMap, transformMap, transformMap.Values.ToList(), "");
 
             if (result != "")
@@ -162,22 +150,23 @@ namespace UnityAnalysisTool
 
         /**
          * Iterates through the transforms and formats the associated GameObject names into a string.
+         * Indents the names for children transforms under their parent using the prefix parameter.
          *
          * TODO: parameters?
          */
         static string makeFileContents(
             Dictionary<string, GameObject> gameObjectMap,
-            Dictionary<string, Transform> transformMap, 
-            List<Transform> transforms, 
+            Dictionary<string, Transform> transformMap,
+            List<Transform> transforms,
             string prefix
         )
         {
             var result = new System.Text.StringBuilder();
-            
+
             // Iterate through the Transform map and add the associated GameObject name to the result
             foreach (Transform transform in transforms)
             {
-                // Skip if we already visited this transform or if it has a parent transform that wasn't visited 
+                // Skip if we already visited this transform or if it has a parent transform that wasn't visited
                 if (transform.visited || transform.m_Father.fileID != "0" && !transformMap[transform.m_Father.fileID].visited)
                 {
                     continue;
@@ -192,7 +181,7 @@ namespace UnityAnalysisTool
                     result.Append(makeFileContents(gameObjectMap, transformMap, children, prefix + "--"));
                 }
             }
-            
+
             return result.ToString();
         }
     }
