@@ -22,8 +22,7 @@ public class SceneParser
         string fileContent = File.ReadAllText(path);
         string[] objects = fileContent.Split("--- !u!");
 
-        // TODO: Change to universal divider
-        string[] pathDirectories = path.Split('\\');
+        string[] pathDirectories = path.Split(Path.DirectorySeparatorChar);
         string fileTitle = pathDirectories[pathDirectories.Length - 1];
 
         // Initialize YAML deserializer such that it ignores tags that are not in the formats defined in UnityAnalysisTool.YamlFormats
@@ -65,7 +64,36 @@ public class SceneParser
                     transformMap.Add(objId, deserializedObj.Transform);
                     break;
                 case "114":
-                    // TODO: Check for monobehavior serializable fields, mark as used if consistent
+                    string guid = deserializedObj.MonoBehaviour.m_Script.guid;
+
+                    var yamlFields = deserializedObj.MonoBehaviour.GetOtherFieldNames();
+                    var scriptSerializedFields = scriptIdToScript[guid].SerializableFields;
+
+                    if (yamlFields.Count == 0)
+                    {
+                        scriptIdToScript[guid].isUsed = true;
+                        break;
+                    }
+
+                    // --------------------
+                    Console.WriteLine("GUID " + guid);
+                    foreach (var field in yamlFields)
+                    {
+                        Console.WriteLine("yaml field " + field);
+                    }
+                    foreach (var field in scriptSerializedFields)
+                    {
+                        Console.WriteLine("script field " + field);
+                    }
+                    Console.WriteLine("---");
+                    // --------------------
+
+                    bool consistent = yamlFields.Any(fieldName => scriptSerializedFields.Contains(fieldName));
+                    if (consistent)
+                    {
+                        scriptIdToScript[guid].isUsed = true;
+                    }
+
                     break;
                 default:
                     break;
@@ -73,17 +101,22 @@ public class SceneParser
         }
 
         result = MakeDumpFileContents(gameObjectMap, transformMap, transformMap.Values.ToList(), "");
+        WriteToDumpFile(outputPath, fileTitle, result);
+    }
 
-        if (result != "")
+    // TODO: Documentation
+    static void WriteToDumpFile(string outputPath, string fileTitle, string content)
+    {
+        if (content != "")
         {
             if (outputPath is null)
             {
-                File.WriteAllText(fileTitle + ".dump", result);
+                File.WriteAllText(fileTitle + ".dump", content);
             }
             else
             {
                 Directory.CreateDirectory(outputPath);
-                File.WriteAllText(Path.Combine(outputPath, fileTitle + ".dump"), result);
+                File.WriteAllText(Path.Combine(outputPath, fileTitle + ".dump"), content);
             }
         }
     }

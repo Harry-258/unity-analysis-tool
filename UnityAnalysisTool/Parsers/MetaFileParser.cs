@@ -16,7 +16,11 @@ public class MetaFileParser
         var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
         var deserialzedObj = deserializer.Deserialize<MetaFile>(fileContent);
 
-        string guid = deserialzedObj.guid;
+        string guid = deserialzedObj.guid ?? "";
+        if (guid == "")
+        {
+            throw new InvalidDataException("Missing script GUID in meta file.");
+        }
 
         return guid;
     }

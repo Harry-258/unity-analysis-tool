@@ -9,13 +9,13 @@ public class Script
 {
     public string id { get; set; }
     public string path { get; set; }
-    public List<string> fields { get; set; }
+    public List<string> SerializableFields { get; set; }
     public bool isUsed { get; set; } = false;
 
-    public Script(string id, List<string> fields, string path)
+    public Script(string id, List<string> SerializableFields, string path)
     {
         this.id = id;
-        this.fields = fields;
+        this.SerializableFields = SerializableFields;
         this.path = path;
     }
 
@@ -34,9 +34,13 @@ public class Script
         {
             if (Path.GetExtension(file) == ".cs")
             {
+                int relativePathIndex = file.IndexOf("Assets");
+                var relativePath = file.Substring(relativePathIndex);
+
                 var scriptId = MetaFileParser.ParseMetaFile(file);
-                var serializableFields = ScriptParser.ParseScript(file, scriptId, scriptIdToScript);
-                scriptIdToScript.TryAdd(scriptId, new Script(scriptId, serializableFields, file));
+                var fields = ScriptParser.ParseScript(file, scriptId, scriptIdToScript);
+
+                scriptIdToScript.TryAdd(scriptId, new Script(scriptId, fields, relativePath));
             }
         });
         Parallel.ForEach(directories, dir =>

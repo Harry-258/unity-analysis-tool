@@ -31,8 +31,7 @@ namespace UnityAnalysisTool
 
             // TODO: Check if there is a project at the given path and if path is valid
 
-            // TODO: This should be Path.DirectorySeparatorChar
-            string projectPath = args[0].Trim(' ', '\\');
+            string projectPath = args[0].Trim(' ', Path.DirectorySeparatorChar);
             Console.WriteLine("Analyzing project at path: " + projectPath);
             Console.WriteLine("Writing ouput to: " + outputPath);
 
