@@ -61,9 +61,17 @@ public class SceneParser
                     gameObjectMap.Add(objId, deserializedObj.GameObject);
                     break;
                 case "4":
+                    if (deserializedObj?.Transform is null)
+                    {
+                        throw new InvalidDataException("Missing Transform in YAML data.");
+                    }
                     transformMap.Add(objId, deserializedObj.Transform);
                     break;
                 case "114":
+                    if (deserializedObj?.MonoBehaviour?.m_Script?.guid is null)
+                    {
+                        throw new InvalidDataException("Missing MonoBehaviour or m_Script or guid in YAML data.");
+                    }
                     string guid = deserializedObj.MonoBehaviour.m_Script.guid;
 
                     var yamlFields = deserializedObj.MonoBehaviour.GetOtherFieldNames();
@@ -112,7 +120,7 @@ public class SceneParser
     /// <param name="fileTitle"> The title of the dump file, without the ".dump" extension. If it's null, it writes to the directory at the same level as the tool.</param>
     /// <param name="content"> The content to be placed in the dump file. </param>
     /// <returns></returns>
-    static void WriteToDumpFile(string outputPath, string fileTitle, string content)
+    static void WriteToDumpFile(string? outputPath, string fileTitle, string content)
     {
         if (content != "")
         {
@@ -153,7 +161,7 @@ public class SceneParser
             {
                 continue;
             }
-            string objectName = gameObjectMap[transform.m_GameObject.fileID].m_Name;
+            string objectName = gameObjectMap[transform.m_GameObject.fileID].m_Name ?? "";
             result.AppendLine(prefix + objectName);
             transform.visited = true;
 
