@@ -8,7 +8,7 @@ namespace UnityAnalysisTool.Tests.Parsers;
 public class MetaFileParserTests : IDisposable
 {
     private readonly string _tempScriptFilePath;
-    
+
     public MetaFileParserTests()
     {
         _tempScriptFilePath = Path.Combine(Path.GetTempPath(), "ParseMetaFileTest.cs");
@@ -18,7 +18,7 @@ public class MetaFileParserTests : IDisposable
     {
         File.Delete(_tempScriptFilePath + ".meta");
     }
-    
+
     [Fact]
     public void ParseMetaFile_ShouldReturnGUID_WhenGivenValidScriptPath()
     {
@@ -38,5 +38,28 @@ MonoImporter:
 
         string result = MetaFileParser.ParseMetaFile(_tempScriptFilePath);
         Assert.Equal(expectedResult, result);
+    }
+
+    [Fact]
+    public void ParseMetaFile_ShouldLogWarning_WhenGUIDIsMissing()
+    {
+        string content = @"fileFormatVersion: 2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: ";
+        using var errorOutput = new StringWriter();
+        Console.SetError(errorOutput);
+
+        File.WriteAllText(_tempScriptFilePath + ".meta", content);
+
+        string result = MetaFileParser.ParseMetaFile(_tempScriptFilePath);
+        Assert.Equal("", result);
+        Assert.Contains("Warning: Missing GUID", errorOutput.ToString());
     }
 }

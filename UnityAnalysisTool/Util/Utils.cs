@@ -14,12 +14,9 @@ public class Utils
     /// <returns> The path to the output directory. </returns>
     public static (string outputPath, string projectPath) Setup(string[] args)
     {
-        // TODO: Test with paths with single \ and double \\ (pbt?)
-        // TODO: Test this
         if (args.Length != 2)
         {
-            Console.WriteLine("Usage: ./tool.exe <path-to-unity-project> <path-to-output-directory>");
-            Environment.Exit(1);
+            throw new ArgumentException("Usage: ./tool.exe <path-to-unity-project> <path-to-output-directory>");
         }
 
         string outputPath = Path.Combine(args[1], "output");
@@ -29,19 +26,15 @@ public class Utils
         }
         Directory.CreateDirectory(outputPath);
 
-        // TODO: Check if there is a project at the given path and if path is valid
-
         string projectPath = args[0].Trim(' ', Path.DirectorySeparatorChar);
         Console.WriteLine("Analyzing project at path: " + projectPath);
         Console.WriteLine("Writing ouput to: " + outputPath);
 
-        // TODO: write a test for a project without an Assets folder
         // Check if the Assets directory exists
         string[] directories = Directory.GetDirectories(projectPath, "Assets", SearchOption.TopDirectoryOnly);
         if (directories.Length == 0)
         {
-            Console.WriteLine("Couldn't find Assets folder! Are you sure you specified the correct path to the project root?");
-            Environment.Exit(1);
+            throw new ArgumentException("Couldn't find Assets folder! Are you sure you specified the correct path to the project root?");
         }
 
         return (outputPath, projectPath);
